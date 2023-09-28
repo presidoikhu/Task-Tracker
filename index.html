@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Task Tracker</title>
+   <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+    <h1>Task Tracker</h1>
+    
+    <div>
+        <input type="text" id="task-input" placeholder="Add a new task">
+        <button id="add-task">Add Task</button>
+    </div>
+    
+    <ul id="task-list">
+        <!-- Tasks will be added here -->
+        <li><span>Going for Shopping</span><input type="checkbox"><button>Delete</button></li>
+    </ul>
+    
+    <div>
+        <label >Show completed tasks: <input type="checkbox" id="show-completed"></label>
+    </div>
+</div>
+
+    <script>
+        // JavaScript code goes here
+        const taskInput = document.querySelector("#task-input");
+        const addTaskBtn = document.querySelector("#add-task");
+        const taskList = document.querySelector("#task-list");
+        const showCompletedChk = document.querySelector("#show-completed");
+
+        showCompletedChk.addEventListener("change", filterTask);
+        addTaskBtn.addEventListener("click", addTask);
+
+        function filterTask() {
+            renderTasks();
+        }
+        function addTask() {
+            let taskText = taskInput.value.trim();
+            if (taskText != "") {
+                let task = {
+                    taskName : taskText,
+                    completed : false
+                };
+                
+                saveTaskToWebStoarge(task);
+                // display all tasks...
+                renderTasks();
+                taskInput.value = "";
+            }
+        }
+
+        function saveTaskToWebStoarge(taskObject) {
+            let tasksList = localStorage.getItem("tasks-list");
+            if (tasksList == null) {
+                let tasks = [];
+                tasks.push(taskObject);
+                localStorage.setItem("tasks-list", JSON.stringify(tasks));
+            } else {
+                tasksList = JSON.parse(tasksList);
+                tasksList.push(taskObject);
+                localStorage.setItem("tasks-list", JSON.stringify(tasksList));
+            }
+        }
+
+
+        function removeTask(index) {
+            debugger;
+            let tasks = fetchTasks();
+            if (tasks.length > 0) {
+                tasks.splice(index, 1);
+                localStorage.setItem("tasks-list", JSON.stringify(tasks));
+            }
+            renderTasks();
+        }
+
+        function completeTask(index){
+            debugger;
+            let tasks = fetchTasks();
+            if (tasks.length > 0) {
+                tasks[index].completed = true;
+                localStorage.setItem("tasks-list", JSON.stringify(tasks));
+            }
+            renderTasks();
+        }
+
+        function fetchTasks() {
+            let tasksList = localStorage.getItem("tasks-list");
+            if (tasksList !== null) {
+                return JSON.parse(tasksList);
+            } else {
+                return [];
+            }
+        }
+
+        function renderTasks() {
+            let tasks = fetchTasks();
+            let showCompletedTask = showCompletedChk.checked;
+
+            taskList.innerHTML = "";
+
+            for (let i = 0; i < tasks.length; i++) {
+                const task = tasks[i];
+
+                if (!showCompletedTask && task.completed) {
+                    continue; // Skip completed tasks if not shown
+                }
+                const li = document.createElement("li");
+
+                const taskText = document.createElement("span");
+                taskText.innerHTML = task.taskName;
+
+                const checkBox = document.createElement("input");
+                checkBox.type = "checkbox";
+                checkBox.checked = task.completed;
+                
+                checkBox.addEventListener("change", () => completeTask(i));
+                
+                if (task.completed == true) {
+                    taskText.classList.add("completed");
+                }
+
+                const deleteButton = document.createElement("button");
+                deleteButton.innerHTML = "Delete";
+                deleteButton.addEventListener("click", () => removeTask(i));
+                
+                li.appendChild(checkBox);
+                li.appendChild(taskText);
+                li.appendChild(deleteButton);
+                
+                taskList.appendChild(li);                
+            }            
+        }
+
+
+        // Initial render of tasks when page loads
+        renderTasks();
+    </script>
+</body>
+</html>
